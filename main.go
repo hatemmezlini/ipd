@@ -16,6 +16,7 @@ func main() {
 	var opts struct {
 		CountryDBPath string `short:"f" long:"country-db" description:"Path to GeoIP country database" value-name:"FILE" default:""`
 		CityDBPath    string `short:"c" long:"city-db" description:"Path to GeoIP city database" value-name:"FILE" default:""`
+		AsnDBPath     string `short:"a" long:"asn-db" description:"Path to GeoIP asn database" value-name:"FILE" default:""`
 		Listen        string `short:"l" long:"listen" description:"Listening address" value-name:"ADDR" default:":8080"`
 		ReverseLookup bool   `short:"r" long:"reverse-lookup" description:"Perform reverse hostname lookups"`
 		PortLookup    bool   `short:"p" long:"port-lookup" description:"Enable port lookup"`
@@ -53,6 +54,12 @@ func main() {
 	if opts.CityDBPath != "" {
 		log.Printf("Enabling city lookup (using database: %s)", opts.CityDBPath)
 		if err := oracle.EnableLookupCity(opts.CityDBPath); err != nil {
+			log.Fatal(err)
+		}
+	}
+	if opts.AsnDBPath != "" {
+		log.Printf("Enabling asn lookup (using database: %s)", opts.AsnDBPath)
+		if err := oracle.EnableLookupAsn(opts.AsnDBPath); err != nil {
 			log.Fatal(err)
 		}
 	}

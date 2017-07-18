@@ -36,6 +36,7 @@ type Response struct {
 	IPDecimal *big.Int `json:"ip_decimal"`
 	Country   string   `json:"country,omitempty"`
 	City      string   `json:"city,omitempty"`
+	Asn       string   `json:"asn,omitempty"`
 	Hostname  string   `json:"hostname,omitempty"`
 }
 
@@ -89,6 +90,10 @@ func (a *API) newResponse(r *http.Request) (Response, error) {
 	if err != nil {
 		a.log.Debug(err)
 	}
+	asn, err := a.oracle.LookupAsn(ip)
+	if err != nil {
+		a.log.Debug(err)
+	}
 	hostnames, err := a.oracle.LookupAddr(ip)
 	if err != nil {
 		a.log.Debug(err)
@@ -98,6 +103,7 @@ func (a *API) newResponse(r *http.Request) (Response, error) {
 		IPDecimal: ipDecimal,
 		Country:   country,
 		City:      city,
+		Asn:       asn,
 		Hostname:  strings.Join(hostnames, " "),
 	}, nil
 }
@@ -147,6 +153,15 @@ func (a *API) CLICityHandler(w http.ResponseWriter, r *http.Request) *appError {
 		return internalServerError(err)
 	}
 	io.WriteString(w, response.City+"\n")
+	return nil
+}
+
+func (a *API) CLIAsnHandler(w http.ResponseWriter, r *http.Request) *appError {
+	response, err := a.newResponse(r)
+	if err != nil {
+		return internalServerError(err)
+	}
+	io.WriteString(w, response.Asn+"\n")
 	return nil
 }
 
@@ -251,6 +266,7 @@ func (a *API) Router() http.Handler {
 	r.Handle("/ip", appHandler(a.CLIHandler)).Methods("GET")
 	r.Handle("/country", appHandler(a.CLICountryHandler)).Methods("GET")
 	r.Handle("/city", appHandler(a.CLICityHandler)).Methods("GET")
+	r.Handle("/asn", appHandler(a.CLIAsnHandler)).Methods("GET")
 
 	// Browser
 	r.Handle("/", appHandler(a.DefaultHandler)).Methods("GET")

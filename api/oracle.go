@@ -13,10 +13,12 @@ type Oracle interface {
 	LookupAddr(net.IP) ([]string, error)
 	LookupCountry(net.IP) (string, error)
 	LookupCity(net.IP) (string, error)
+	LookupAsn(net.IP) (string, error)
 	LookupPort(net.IP, uint64) error
 	IsLookupAddrEnabled() bool
 	IsLookupCountryEnabled() bool
 	IsLookupCityEnabled() bool
+	IsLookupAsnEnabled() bool
 	IsLookupPortEnabled() bool
 }
 
@@ -24,10 +26,12 @@ type DefaultOracle struct {
 	lookupAddr           func(net.IP) ([]string, error)
 	lookupCountry        func(net.IP) (string, error)
 	lookupCity           func(net.IP) (string, error)
+	lookupAsn            func(net.IP) (string, error)
 	lookupPort           func(net.IP, uint64) error
 	lookupAddrEnabled    bool
 	lookupCountryEnabled bool
 	lookupCityEnabled    bool
+	lookupAsnEnabled     bool
 	lookupPortEnabled    bool
 }
 
@@ -36,6 +40,7 @@ func NewOracle() *DefaultOracle {
 		lookupAddr:    func(net.IP) ([]string, error) { return nil, nil },
 		lookupCountry: func(net.IP) (string, error) { return "", nil },
 		lookupCity:    func(net.IP) (string, error) { return "", nil },
+		lookupAsn:    func(net.IP) (string, error) { return "", nil },
 		lookupPort:    func(net.IP, uint64) error { return nil },
 	}
 }
@@ -50,6 +55,10 @@ func (r *DefaultOracle) LookupCountry(ip net.IP) (string, error) {
 
 func (r *DefaultOracle) LookupCity(ip net.IP) (string, error) {
 	return r.lookupCity(ip)
+}
+
+func (r *DefaultOracle) LookupAsn(ip net.IP) (string, error) {
+	return r.lookupAsn(ip)
 }
 
 func (r *DefaultOracle) LookupPort(ip net.IP, port uint64) error {
@@ -85,6 +94,18 @@ func (r *DefaultOracle) EnableLookupCity(filepath string) error {
 	return nil
 }
 
+func (r *DefaultOracle) EnableLookupAsn(filepath string) error {
+	db, err := geoip2.Open(filepath)
+	if err != nil {
+		return err
+	}
+	r.lookupAsn = func(ip net.IP) (string, error) {
+		return lookupAsn(db, ip)
+	}
+	r.lookupAsnEnabled = true
+	return nil
+}
+
 func (r *DefaultOracle) EnableLookupPort() {
 	r.lookupPort = lookupPort
 	r.lookupPortEnabled = true
@@ -93,6 +114,7 @@ func (r *DefaultOracle) EnableLookupPort() {
 func (r *DefaultOracle) IsLookupAddrEnabled() bool    { return r.lookupAddrEnabled }
 func (r *DefaultOracle) IsLookupCountryEnabled() bool { return r.lookupCountryEnabled }
 func (r *DefaultOracle) IsLookupCityEnabled() bool    { return r.lookupCityEnabled }
+func (r *DefaultOracle) IsLookupAsnEnabled() bool     { return r.lookupAsnEnabled }
 func (r *DefaultOracle) IsLookupPortEnabled() bool    { return r.lookupPortEnabled }
 
 func lookupAddr(ip net.IP) ([]string, error) {
@@ -136,4 +158,17 @@ func lookupCity(db *geoip2.Reader, ip net.IP) (string, error) {
 		return city, nil
 	}
 	return "Unknown", fmt.Errorf("could not determine city for IP: %s", ip)
+}
+
+func lookupAsn(db *geoip2.Reader, ip net.IP) (string, error) {
+	record, err := db.ASN(ip)
+	if err != nil {
+		return "", err
+	}
+	//if asn, exists := record.AutonomousSystemOrganization; exists {
+	//	return asn, nil
+	//}
+	asn := record.AutonomousSystemOrganization
+	return asn, nil
+	//return "Unknown", fmt.Errorf("could not determine asn for IP: %s", ip)
 }

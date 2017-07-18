@@ -2,7 +2,7 @@
 
 [![Build Status](https://travis-ci.org/mpolden/ipd.svg)](https://travis-ci.org/mpolden/ipd)
 
-A simple service for looking up your IP address. This is the code that powers
+A simple service for looking up your IP address. This is a small modification of the code that powers
 https://ifconfig.co
 
 ## Usage
@@ -10,27 +10,29 @@ https://ifconfig.co
 Just the business, please:
 
 ```
-$ curl ifconfig.co
+$ curl example.com
 127.0.0.1
 
-$ http ifconfig.co
+$ http example.com
 127.0.0.1
 
-$ wget -qO- ifconfig.co
+$ wget -qO- example.com
 127.0.0.1
 
-$ fetch -qo- http://ifconfig.co
+$ fetch -qo- http://example.com
 127.0.0.1
 ```
 
 Country and city lookup:
 
 ```
-$ http ifconfig.co/country
+$ http example.com/country
 Elbonia
 
-$ http ifconfig.co/city
+$ http example.com/city
 Bornyasherk
+
+$http example.com/asn
 ```
 
 As JSON:
@@ -38,6 +40,7 @@ As JSON:
 ```
 $ http --json ifconfig.co
 {
+  "asn": "Telstra Pty Ltd",
   "city": "Bornyasherk",
   "country": "Elbonia",
   "ip": "127.0.0.1",
@@ -66,7 +69,7 @@ $ http --json ifconfig.co
 Compiling requires the [Golang compiler](https://golang.org/) to be installed.
 This application can be installed by using `go get`:
 
-`go get github.com/mpolden/ipd`
+`go get github.com/hatemmezlini/ipd`
 
 ### Usage
 
@@ -78,6 +81,7 @@ Usage:
 Application Options:
   -f, --country-db=FILE                                  Path to GeoIP country database
   -c, --city-db=FILE                                     Path to GeoIP city database
+  -a, --asn-db=FILE                                      Path to GeoIP asn database
   -l, --listen=ADDR                                      Listening address (default: :8080)
   -r, --reverse-lookup                                   Perform reverse hostname lookups
   -p, --port-lookup                                      Enable port lookup
