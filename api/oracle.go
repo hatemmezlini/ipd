@@ -40,7 +40,7 @@ func NewOracle() *DefaultOracle {
 		lookupAddr:    func(net.IP) ([]string, error) { return nil, nil },
 		lookupCountry: func(net.IP) (string, error) { return "", nil },
 		lookupCity:    func(net.IP) (string, error) { return "", nil },
-		lookupAsn:    func(net.IP) (string, error) { return "", nil },
+		lookupAsn:     func(net.IP) (string, error) { return "", nil },
 		lookupPort:    func(net.IP, uint64) error { return nil },
 	}
 }
@@ -165,10 +165,9 @@ func lookupAsn(db *geoip2.Reader, ip net.IP) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	//if asn, exists := record.AutonomousSystemOrganization; exists {
-	//	return asn, nil
-	//}
 	asn := record.AutonomousSystemOrganization
+	if asn == "" {
+		return "Unknown", fmt.Errorf("could not determine asn for IP: %s", ip)
+	}
 	return asn, nil
-	//return "Unknown", fmt.Errorf("could not determine asn for IP: %s", ip)
 }

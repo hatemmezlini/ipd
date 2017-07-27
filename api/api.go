@@ -61,7 +61,10 @@ func ipToDecimal(ip net.IP) *big.Int {
 }
 
 func ipFromRequest(header string, r *http.Request) (net.IP, error) {
-	remoteIP := r.Header.Get(header)
+	remoteIPheader := r.Header.Get(header)
+	// Assuming there could be multiple ips in header => grab last public one
+	ips := strings.Split(remoteIPheader, ", ")
+	remoteIP := ips[len(ips)-1]
 	if remoteIP == "" {
 		host, _, err := net.SplitHostPort(r.RemoteAddr)
 		if err != nil {
@@ -76,8 +79,26 @@ func ipFromRequest(header string, r *http.Request) (net.IP, error) {
 	return ip, nil
 }
 
+func ipFromURL(keys []string) (net.IP, error) {
+	// we only want the single item.
+	remoteIP := strings.Replace(keys[0], "/", "", -1)
+	ip := net.ParseIP(remoteIP)
+	if ip == nil {
+		return nil, fmt.Errorf("could not parse IP in url: %s", remoteIP)
+	}
+	return ip, nil
+}
+
 func (a *API) newResponse(r *http.Request) (Response, error) {
-	ip, err := ipFromRequest(a.IPHeader, r)
+	// check first if ip in url
+	keys, ok := r.URL.Query()["ip"]
+	var ip net.IP
+	var err error
+	if !ok || len(keys) < 1 {
+		ip, err = ipFromRequest(a.IPHeader, r)
+	} else {
+		ip, err = ipFromURL(keys)
+	}
 	if err != nil {
 		return Response{}, err
 	}
