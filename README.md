@@ -23,7 +23,7 @@ $ fetch -qo- http://example.com
 127.0.0.1
 ```
 
-Country and city lookup:
+Country, city and asn lookup:
 
 ```
 $ http example.com/country
@@ -33,18 +33,32 @@ $ http example.com/city
 Bornyasherk
 
 $http example.com/asn
+Telstra Pty Ltd
 ```
 
 As JSON:
 
 ```
-$ http --json ifconfig.co
+$ http --json example.com
 {
   "asn": "Telstra Pty Ltd",
   "city": "Bornyasherk",
   "country": "Elbonia",
   "ip": "127.0.0.1",
   "ip_decimal": 2130706433
+}
+```
+
+You can also lookup any IP address by adding it in url as parameter:
+
+```
+$ http --json example.com?ip=89.12.59.17
+{
+  "asn": "Telefonica Germany",
+  "city": "Filderstadt",
+  "country": "Germany",
+  "ip": "89.12.59.17",
+  "ip_decimal": 1493973777
 }
 ```
 
