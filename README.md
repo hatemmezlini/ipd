@@ -5,6 +5,9 @@
 A simple service for looking up your IP address. This is a small modification of the code that powers
 https://ifconfig.co
 
+* ASN Autonomous system number is added in json to designate the carrier, datacenter or whatever organization behind the IP
+* You can also look up any IP when adding it as a parameter
+
 ## Usage
 
 Just the business, please:
